@@ -1,18 +1,174 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="SGPA Calculator for RV University B.Tech students — real-time grade calculation, reverse GPA optimizer, and smart exam planning." />
-    <title>Marque — SGPA Calculator</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,300;0,400;1,300&family=Hanken+Grotesk:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
-    <script type="module" crossorigin src="/marque/assets/index-5cshpe3f.js"></script>
-    <link rel="stylesheet" crossorigin href="/marque/assets/index-DnyYjxmH.css">
-  </head>
-  <body>
-    <div id="root"></div>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SGPA Calculator — RV University</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600&family=DM+Mono:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Reset ─────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; overflow-x: hidden; }
+    body {
+      background: #080b14; color: #F5EFEB;
+      font-family: 'Hanken Grotesk', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow-x: hidden;
+    }
+
+    /* ── Number input spinners ─────────────────────────── */
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type=number] { -moz-appearance: textfield; }
+
+    /* ── Scrollbar ─────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 3px; height: 3px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,.12); border-radius: 2px; }
+    * { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.12) transparent; }
+
+    /* ── Table: show delete on hover ───────────────────── */
+    tr:hover .del-btn { opacity: 1 !important; }
+
+    /* ═══════════════════════════════════════════════════
+       KEYFRAME ANIMATIONS
+    ═══════════════════════════════════════════════════ */
+
+    /* Entrance */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0);    }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(32px); }
+      to   { opacity: 1; transform: translateX(0);    }
+    }
+    @keyframes slideUpFade {
+      from { opacity: 0; transform: translateY(24px) scale(0.95); }
+      to   { opacity: 1; transform: translateY(0)    scale(1);    }
+    }
+    @keyframes clipReveal {
+      from { transform: translateY(110%); }
+      to   { transform: translateY(0);    }
+    }
+    @keyframes majorReveal {
+      from { opacity: 0; transform: scale(0.88) translateY(18px); }
+      to   { opacity: 1; transform: scale(1)    translateY(0);    }
+    }
+
+    /* Interaction */
+    @keyframes rippleExpand {
+      0%   { transform: translate(-50%,-50%) scale(1);  opacity: .35; }
+      100% { transform: translate(-50%,-50%) scale(14); opacity: 0;   }
+    }
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateX(44px); }
+      to   { opacity: 1; transform: translateX(0);    }
+    }
+    @keyframes modalIn {
+      from { opacity: 0; transform: scale(0.92); }
+      to   { opacity: 1; transform: scale(1);    }
+    }
+    @keyframes springBounce {
+      0%   { transform: scale(1);    }
+      40%  { transform: scale(0.94); }
+      70%  { transform: scale(1.04); }
+      100% { transform: scale(1);    }
+    }
+
+    /* Ambient / continuous */
+    @keyframes mq {
+      from { transform: translateX(0);    }
+      to   { transform: translateX(-50%); }
+    }
+    @keyframes pulse {
+      0%,100% { opacity: 1; transform: scale(1);    box-shadow: 0 0 8px #F1B497; }
+      50%      { opacity: .5; transform: scale(.82); box-shadow: 0 0 4px #F1B49780; }
+    }
+    @keyframes glowPulse {
+      0%,100% { text-shadow: none; }
+      50%      { text-shadow: 0 0 40px rgba(241,180,151,.3), 0 0 80px rgba(241,180,151,.12); }
+    }
+    @keyframes scanLine {
+      0%   { transform: translateY(-100vh); opacity: 0;   }
+      8%   { opacity: 1; }
+      92%  { opacity: 1; }
+      100% { transform: translateY(200vh);  opacity: 0;   }
+    }
+    @keyframes particleDrift {
+      0%   { transform: translateY(0) translateX(0);         opacity: 0; }
+      12%  { opacity: .8; }
+      88%  { opacity: .4; }
+      100% { transform: translateY(-220px) translateX(var(--drift, 30px)); opacity: 0; }
+    }
+    @keyframes orbitalSpin {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+    @keyframes gradientShift {
+      0%,100% { background-position: 0%   50%; }
+      50%      { background-position: 100% 50%; }
+    }
+    @keyframes borderPulse {
+      0%,100% { border-color: rgba(241,180,151,.15); }
+      50%      { border-color: rgba(241,180,151,.55); }
+    }
+    @keyframes float {
+      0%,100% { transform: translateY(0);    }
+      50%      { transform: translateY(-10px); }
+    }
+    @keyframes nodeGlow {
+      0%,100% { box-shadow: none; }
+      50%      { box-shadow: 0 0 20px currentColor; }
+    }
+    @keyframes breathe {
+      0%,100% { box-shadow: 0 0 0 0 rgba(241,180,151,0); }
+      50%      { box-shadow: 0 0 0 10px rgba(241,180,151,.08); }
+    }
+    @keyframes textFlicker {
+      0%,96%,100% { opacity: 1; filter: none; }
+      97%  { opacity: .85; filter: blur(.5px); }
+      98%  { opacity: 1; filter: none; }
+      99%  { opacity: .9; filter: blur(.3px); }
+    }
+
+    /* ── Utility classes ───────────────────────────────── */
+    .hover-lift { transition: transform .18s ease, box-shadow .18s ease; }
+    .hover-lift:hover { transform: translateY(-3px); box-shadow: 0 8px 32px rgba(0,0,0,.35); }
+    .spring-click:active { animation: springBounce .4s ease; }
+    .flicker { animation: textFlicker 8s ease infinite; }
+
+    /* ── Reduced motion ────────────────────────────────── */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <!-- Load order: utils → shared UI → animations → space → views → app -->
+  <script src="gpa-utils.js"></script>
+  <script type="text/babel" src="gpa-ui.jsx"></script>
+  <script type="text/babel" src="gpa-animations.jsx"></script>
+  <script type="text/babel" src="gpa-space.jsx"></script>
+  <script type="text/babel" src="gpa-courses.jsx"></script>
+  <script type="text/babel" src="gpa-dashboard.jsx"></script>
+  <script type="text/babel" src="gpa-reverse.jsx"></script>
+  <script type="text/babel" src="gpa-app.jsx"></script>
+</body>
 </html>
