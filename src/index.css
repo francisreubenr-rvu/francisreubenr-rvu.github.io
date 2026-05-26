@@ -1,0 +1,242 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --cream:  #F5EFEB;
+  --char:   #F5EFEB;
+  --salmon: #F1B497;
+  --sal-h:  #DEA083;
+  --stone:  #9a9997;
+  --tan:    rgba(255,255,255,0.18);
+  --bg:     #0a0e1a;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent; /* remove blue flash on iOS tap */
+}
+
+html {
+  scroll-behavior: smooth;
+  overflow-x: hidden; /* on html not body — avoids breaking position:sticky on iOS Safari */
+}
+
+body {
+  font-family: 'Hanken Grotesk', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--char);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Remove 300ms tap delay on all interactive elements */
+button, a, input, select, textarea { touch-action: manipulation; }
+
+/* ── PILL BUTTON ─────────────────────────────── */
+.btn-pill {
+  display: inline-flex; align-items: center; gap: 10px;
+  border-radius: 80px; padding: 11px 26px;
+  font-family: 'Hanken Grotesk', sans-serif;
+  font-size: 11px; font-weight: 400;
+  letter-spacing: .55px; text-transform: uppercase;
+  text-decoration: none; border: none; cursor: pointer;
+  position: relative; overflow: hidden;
+  transition: background .3s, color .3s, border-color .3s;
+}
+.btn-pill::after {
+  content: ''; position: absolute; inset: 0;
+  background: rgba(255,255,255,.12); opacity: 0;
+  transition: opacity .3s;
+}
+.btn-pill:hover::after { opacity: 1; }
+.btn-sal  { background: var(--salmon); color: var(--cream); }
+.btn-sal:hover  { background: var(--sal-h); }
+.btn-out  { background: transparent; color: var(--cream); border: 1px solid rgba(255,255,255,0.20); }
+.btn-out:hover { border-color: rgba(255,255,255,0.45); }
+.btn-dark { background: rgba(255,255,255,0.10); color: var(--cream); border: 1px solid rgba(255,255,255,0.15); }
+.btn-dark:hover { background: rgba(255,255,255,0.16); }
+
+/* ── CARD ─────────────────────────────────────── */
+.ts-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 4px;
+}
+
+/* ── SECTION LABEL ───────────────────────────── */
+.s-label {
+  font-family: 'Hanken Grotesk', sans-serif;
+  font-size: 10px; font-weight: 400;
+  letter-spacing: 2.5px; text-transform: uppercase;
+  color: var(--stone);
+}
+
+/* ── CLIP REVEAL (word-by-word) ──────────────── */
+.clip-word { display: block; overflow: hidden; }
+.clip-inner { display: block; transform: translateY(110%); }
+
+/* ── SCROLL REVEAL ───────────────────────────── */
+.reveal { opacity: 0; transform: translateY(32px); }
+.reveal.vis {
+  opacity: 1; transform: translateY(0);
+  transition: opacity .85s ease, transform .85s ease;
+}
+
+/* ── MARQUEE ─────────────────────────────────── */
+@keyframes mq { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+/* ── DESIGN SYSTEM KEYFRAMES ─────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(32px); }
+  to   { opacity: 1; transform: translateX(0);    }
+}
+@keyframes slideUpFade {
+  from { opacity: 0; transform: translateY(24px) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0)    scale(1);    }
+}
+@keyframes clipReveal {
+  from { transform: translateY(110%); }
+  to   { transform: translateY(0);    }
+}
+@keyframes majorReveal {
+  from { opacity: 0; transform: scale(0.88) translateY(18px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0);    }
+}
+@keyframes rippleExpand {
+  0%   { transform: translate(-50%,-50%) scale(1);  opacity: .35; }
+  100% { transform: translate(-50%,-50%) scale(14); opacity: 0;   }
+}
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(44px); }
+  to   { opacity: 1; transform: translateX(0);    }
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1);    }
+}
+@keyframes springBounce {
+  0%   { transform: scale(1);    }
+  40%  { transform: scale(0.94); }
+  70%  { transform: scale(1.04); }
+  100% { transform: scale(1);    }
+}
+@keyframes pulse {
+  0%,100% { opacity: 1; transform: scale(1);    box-shadow: 0 0 8px #F1B497; }
+  50%     { opacity: .5; transform: scale(.82); box-shadow: 0 0 4px #F1B49780; }
+}
+@keyframes glowPulse {
+  0%,100% { text-shadow: none; }
+  50%     { text-shadow: 0 0 40px rgba(241,180,151,.3), 0 0 80px rgba(241,180,151,.12); }
+}
+@keyframes scanLine {
+  0%   { transform: translateY(-100vh); opacity: 0;   }
+  8%   { opacity: 1; }
+  92%  { opacity: 1; }
+  100% { transform: translateY(200vh);  opacity: 0;   }
+}
+@keyframes particleDrift {
+  0%   { transform: translateY(0) translateX(0);                        opacity: 0; }
+  12%  { opacity: .8; }
+  88%  { opacity: .4; }
+  100% { transform: translateY(-220px) translateX(var(--drift, 30px));  opacity: 0; }
+}
+@keyframes orbitalSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes gradientShift {
+  0%,100% { background-position: 0%   50%; }
+  50%     { background-position: 100% 50%; }
+}
+@keyframes borderPulse {
+  0%,100% { border-color: rgba(241,180,151,.15); }
+  50%     { border-color: rgba(241,180,151,.55); }
+}
+@keyframes float {
+  0%,100% { transform: translateY(0);     }
+  50%     { transform: translateY(-10px); }
+}
+@keyframes nodeGlow {
+  0%,100% { box-shadow: none; }
+  50%     { box-shadow: 0 0 20px currentColor; }
+}
+@keyframes breathe {
+  0%,100% { box-shadow: 0 0 0 0 rgba(241,180,151,0); }
+  50%     { box-shadow: 0 0 0 10px rgba(241,180,151,.08); }
+}
+@keyframes textFlicker {
+  0%,96%,100% { opacity: 1; filter: none; }
+  97%  { opacity: .85; filter: blur(.5px); }
+  98%  { opacity: 1;   filter: none; }
+  99%  { opacity: .9;  filter: blur(.3px); }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+@keyframes twinkle {
+  0%,100% { opacity: 0.08; transform: scale(1); }
+  50%     { opacity: 0.65; transform: scale(1.4); }
+}
+
+/* ── UTILITY CLASSES ─────────────────────────────── */
+.hover-lift { transition: transform .18s ease, box-shadow .18s ease; }
+.hover-lift:hover { transform: translateY(-3px); box-shadow: 0 8px 32px rgba(0,0,0,.35); }
+.spring-click:active { animation: springBounce .4s ease; }
+.del-btn:hover { opacity: 1 !important; }
+
+/* ── NUMBER INPUT: hide spinners ─────────────── */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+input[type=number] { -moz-appearance: textfield; }
+
+/* ── SCROLLBAR ───────────────────────────────── */
+::-webkit-scrollbar { width: 3px; height: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+/* Firefox scrollbar */
+* { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.15) transparent; }
+
+/* ── HIDE SCROLLBAR (nav on mobile) ──────────── */
+.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+
+/* ── SALMON TAG (tinted badge/chip) ─────────── */
+/* Generic salmon-tinted inline tag: use for credits chips, semester labels, etc. */
+.salmon-tag {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: .5px;
+  padding: 2px 6px;
+  background: rgba(241,180,151,.15);
+  color: var(--salmon);
+  border: none;
+}
+
+/* Credits chip: pill variant with cr suffix */
+.cr-chip {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  padding: 2px 6px;
+  background: rgba(241,180,151,.15);
+  color: var(--salmon);
+}
+
+/* ── REDUCED MOTION ──────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}
