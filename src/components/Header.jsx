@@ -48,6 +48,22 @@ export default function Header({ activeTab, setActiveTab, selection, sgpa, onSwi
               onMouseLeave={e => { if (activeTab !== t.id) e.currentTarget.style.color='#8B8986' }}
             >
               {t.label}
+              {/* Top lamp — glow dot */}
+              <span style={{
+                position:'absolute', top:0, left:'50%', transform:'translateX(-50%)',
+                width: activeTab===t.id ? 24 : 0, height:2,
+                background:'#F1B497',
+                boxShadow: activeTab===t.id ? '0 0 8px 3px rgba(241,180,151,.65), 0 0 22px 6px rgba(241,180,151,.28)' : 'none',
+                transition:'width .28s ease, box-shadow .28s ease',
+              }} />
+              {/* Top lamp — downward cone */}
+              <span style={{
+                position:'absolute', top:0, left:0, right:0, bottom:0,
+                background:'radial-gradient(ellipse 72% 100% at 50% 0%, rgba(241,180,151,.13) 0%, transparent 100%)',
+                opacity: activeTab===t.id ? 1 : 0,
+                transition:'opacity .28s ease',
+                pointerEvents:'none',
+              }} />
               {/* Sweep underline */}
               <span style={{
                 position:'absolute', bottom:0, left:0, right:0, height:2,
