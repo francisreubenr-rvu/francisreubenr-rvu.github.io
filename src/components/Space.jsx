@@ -5,7 +5,7 @@ import { MAJORS } from '../utils/constants'
 const SOLAR = [
   { id:'mercury', name:'Mercury', sem:'sem1', label:'Semester 1', orbit:70,  size:5,  speed:0.28,  color:'#B4B4B4', glow:'rgba(200,200,200,', grad:[[0,'#D0D0D0'],[0.6,'#888'],[1,'#555']], bands:null, rings:false, ringParticles:false, moons:[], available:true, completed:true, comingSoon:false, fact:'Fastest planet. No atmosphere. Extreme temperature swings.', divides:['EEX','ES'], noiseSeed:11 },
   { id:'venus',   name:'Venus',   sem:'sem2', label:'Semester 2', orbit:105, size:8,  speed:0.18,  color:'#E8C484', glow:'rgba(255,210,120,', grad:[[0,'#FFDF9A'],[0.6,'#C89040'],[1,'#A07020']], bands:null, rings:false, ringParticles:false, moons:[], available:true, completed:false, comingSoon:false, fact:'Hottest planet. Shrouded in toxic clouds. Rotates retrograde.', divides:['EEX','ES'], noiseSeed:22 },
-  { id:'earth',   name:'Earth',   sem:'sem3', label:'Semester 3', orbit:153, size:10, speed:0.12,  color:'#4B7BE5', glow:'rgba(100,155,255,', grad:[[0,'#6B9BFF'],[0.45,'#2B55C8'],[1,'#102888']], bands:null, rings:false, ringParticles:false, moons:[{name:'Moon',orbit:22,size:3.2,speed:0.058,color:'#CCCCCC',glow:'rgba(200,200,200,'}], available:true, comingSoon:true, fact:'Our home. Year 2 specialisations begin here.', divides:['EEX','ES'], noiseSeed:33 },
+  { id:'earth',   name:'Earth',   sem:'sem3', label:'Semester 3', orbit:153, size:10, speed:0.12,  color:'#4B7BE5', glow:'rgba(100,155,255,', grad:[[0,'#6B9BFF'],[0.45,'#2B55C8'],[1,'#102888']], bands:null, rings:false, ringParticles:false, moons:[{name:'Moon',orbit:22,size:3.2,speed:0.058,color:'#CCCCCC',glow:'rgba(200,200,200,'},{name:'ISS',orbit:30,size:1.8,speed:0.32,color:'#C8D6E2',glow:'rgba(200,213,226,',shape:'iss',fact:'International Space Station · 408 km altitude · 7.66 km/s · 16 sunrises per day'},{name:'Hubble',orbit:38,size:1.6,speed:0.24,color:'#B4C4D4',glow:'rgba(180,196,212,',shape:'telescope',fact:'Hubble Space Telescope · 547 km altitude · launched 1990 · over 1.4 million observations'},{name:'GPS-IIF',orbit:46,size:1.4,speed:0.14,color:'#A8B8C8',glow:'rgba(165,185,200,',shape:'satellite',fact:'GPS Satellite · MEO orbit 20,200 km · constellation of 31 active satellites · sub-metre accuracy'}], available:true, comingSoon:true, fact:'Our home. Year 2 specialisations begin here.', divides:['EEX','ES'], noiseSeed:33 },
   { id:'mars',    name:'Mars',    sem:'sem4', label:'Semester 4', orbit:198, size:6,  speed:0.08,  color:'#C1440E', glow:'rgba(220,80,30,',   grad:[[0,'#E06640'],[0.6,'#A03010'],[1,'#601000']], bands:null, rings:false, ringParticles:false, moons:[{name:'Phobos',orbit:19,size:2.5,speed:0.09,color:'#AAA',glow:'rgba(170,170,170,'},{name:'Deimos',orbit:29,size:2,speed:0.053,color:'#999',glow:'rgba(150,150,150,'}], available:true, comingSoon:true, fact:'The Red Planet. Home to Olympus Mons, tallest known volcano.', divides:['EEX','ES'], noiseSeed:44 },
   { id:'jupiter', name:'Jupiter', sem:'sem5', label:'Semester 5', orbit:276, size:22, speed:0.05,  color:'#C88B3A', glow:'rgba(220,160,80,',  grad:null, bands:['#C8883A','#E4B86A','#A86020','#D89850','#F0CC80','#A86020','#C8883A','#E4B86A','#B87030'], rings:false, ringParticles:false, moons:[{name:'Io',orbit:35,size:3.5,speed:0.068,color:'#FFD700',glow:'rgba(255,215,0,'},{name:'Europa',orbit:46,size:3,speed:0.048,color:'#D4C8A0',glow:'rgba(210,200,160,'},{name:'Ganymede',orbit:58,size:4,speed:0.033,color:'#A89060',glow:'rgba(170,145,100,'},{name:'Callisto',orbit:71,size:3.5,speed:0.024,color:'#887060',glow:'rgba(140,115,100,'}], available:true, comingSoon:true, fact:"King of planets. Great Red Spot: a storm older than recorded history.", divides:['EEX','ES'], noiseSeed:55 },
   { id:'saturn',  name:'Saturn',  sem:'sem6', label:'Semester 6', orbit:382, size:18, speed:0.032, color:'#E4D191', glow:'rgba(240,220,130,', grad:null, bands:['#D8C070','#F0E090','#C8A850','#E8D880','#F0E090','#C8A850','#D8C070','#E8D060'], rings:true, ringParticles:false, moons:[{name:'Titan',orbit:40,size:4,speed:0.038,color:'#E8A020',glow:'rgba(230,160,30,'},{name:'Enceladus',orbit:52,size:2.5,speed:0.052,color:'#EEEEFF',glow:'rgba(220,220,255,'},{name:'Rhea',orbit:64,size:3,speed:0.033,color:'#CCCCCC',glow:'rgba(200,200,200,'}], available:true, comingSoon:true, fact:'The Ringed Beauty. Rings span 282,000 km — mostly ice.', divides:['EEX','ES'], noiseSeed:66 },
@@ -135,6 +135,56 @@ function getTexture(p, r, galaxyIdx) {
   ox.putImageData(id,0,0)
   ox.restore()
   texCache[key]=oc; return oc
+}
+
+// ── Asteroid belt seeds (pre-computed, stable) ───────────────────────────
+function _genAsteroidVerts(seed, count) {
+  const v = []
+  for (let i = 0; i < count; i++) {
+    const a = (i / count) * Math.PI * 2
+    const r = 0.55 + ((Math.sin(seed*17.3+i*31.7)+Math.cos(seed*7.1+i*23.9))*.25+.5)*.45
+    v.push([Math.cos(a)*r, Math.sin(a)*r])
+  }
+  return v
+}
+const ASTEROID_SEEDS = Array.from({length:12},(_,i)=>({
+  id:i, orbitBase:220+(i%4)*5,
+  angleOffset:(i/12)*Math.PI*2,
+  speed:0.022+(i%5)*.004, size:1.8+(i%3)*.5,
+  verts:_genAsteroidVerts(i*7+3, 6+(i%3)),
+}))
+
+// ── Satellite shape drawers (ctx passed explicitly) ───────────────────────
+function drawISS(ctx,x,y,r){
+  const s=Math.max(r*2.8,3)
+  ctx.save(); ctx.translate(x,y)
+  ctx.fillStyle='rgba(195,210,225,0.92)'; ctx.fillRect(-s*2.6,-s*.12,s*5.2,s*.24)
+  ctx.fillStyle='rgba(70,115,185,0.88)'
+  ctx.fillRect(-s*2.5,-s*.85,s*.95,s*1.7); ctx.fillRect(-s*1.35,-s*.85,s*.95,s*1.7)
+  ctx.fillRect(s*.4,-s*.85,s*.95,s*1.7); ctx.fillRect(s*1.55,-s*.85,s*.95,s*1.7)
+  ctx.fillStyle='rgba(215,225,235,0.96)'; ctx.fillRect(-s*.42,-s*.5,s*.84,s)
+  ctx.restore()
+}
+function drawHubble(ctx,x,y,r){
+  const s=Math.max(r*2.8,3)
+  ctx.save(); ctx.translate(x,y)
+  ctx.fillStyle='rgba(178,192,208,0.90)'; ctx.fillRect(-s*.38,-s*1.1,s*.76,s*2.2)
+  ctx.fillStyle='rgba(65,105,175,0.85)'
+  ctx.fillRect(-s*1.9,-s*.18,s*1.4,s*.36); ctx.fillRect(s*.5,-s*.18,s*1.4,s*.36)
+  ctx.beginPath(); ctx.arc(0,-s*.75,s*.32,0,Math.PI*2)
+  ctx.strokeStyle='rgba(215,225,235,0.88)'; ctx.lineWidth=s*.1; ctx.stroke()
+  ctx.restore()
+}
+function drawGPSSat(ctx,x,y,r){
+  const s=Math.max(r*2.8,3)
+  ctx.save(); ctx.translate(x,y)
+  ctx.fillStyle='rgba(172,186,200,0.90)'; ctx.fillRect(-s*.42,-s*.52,s*.84,s*1.04)
+  ctx.fillStyle='rgba(65,105,175,0.85)'
+  ctx.fillRect(-s*2.1,-s*.3,s*1.55,s*.6); ctx.fillRect(s*.55,-s*.3,s*1.55,s*.6)
+  ctx.beginPath(); ctx.arc(0,-s*.62,s*.24,0,Math.PI*2)
+  ctx.strokeStyle='rgba(215,225,235,0.82)'; ctx.lineWidth=s*.08; ctx.stroke()
+  ctx.beginPath(); ctx.moveTo(0,-s*.38); ctx.lineTo(0,-s*.62); ctx.stroke()
+  ctx.restore()
 }
 
 // ── Star Field Canvas ─────────────────────────────────────────────────────
@@ -287,7 +337,7 @@ function StarFieldCanvas({ canvasRef, warpRef, galaxyIdx }) {
 }
 
 // ── Solar System Canvas ───────────────────────────────────────────────────
-function SolarCanvas({ canvasRef, onPlanetClick, zoomedId, galaxyIdx }) {
+function SolarCanvas({ canvasRef, onPlanetClick, zoomedId, galaxyIdx, onSatelliteClick, onAsteroidDestroy }) {
   const galaxyIdxRef = useRef(0)
   useEffect(()=>{ galaxyIdxRef.current = galaxyIdx||0 },[galaxyIdx])
   const angRef  = useRef(Object.fromEntries(SOLAR.flatMap(p=>[
@@ -303,6 +353,16 @@ function SolarCanvas({ canvasRef, onPlanetClick, zoomedId, galaxyIdx }) {
   const rafRef  = useRef(null)
   const lastRef = useRef(performance.now())
   const t0      = useRef(performance.now())
+  const satPosRef       = useRef({})
+  const astPosRef       = useRef({})
+  const fragmentsRef    = useRef([])
+  const mouseRef        = useRef(null)
+  const hovAstRef       = useRef(null)
+  const astDestroyedRef = useRef({})
+  const onSatClickRef   = useRef(onSatelliteClick)
+  const onAstDestroyRef = useRef(onAsteroidDestroy)
+  useEffect(()=>{ onSatClickRef.current=onSatelliteClick },[onSatelliteClick])
+  useEffect(()=>{ onAstDestroyRef.current=onAsteroidDestroy },[onAsteroidDestroy])
 
   useEffect(()=>{ zIdRef.current=zoomedId },[zoomedId])
 
@@ -427,12 +487,59 @@ function SolarCanvas({ canvasRef, onPlanetClick, zoomedId, galaxyIdx }) {
         p.moons.forEach(m=>{ const k=`${p.id}_${m.name}`; angRef.current[k]=(angRef.current[k]+m.speed*dt)%(Math.PI*2) })
       })
 
-      for(let i=0;i<130;i++){
-        const aa=(i/130)*Math.PI*2+t*.003
-        const arx=(237+Math.sin(i*17.3)*10)*BSx, ary=(237+Math.sin(i*17.3)*10)*BSy
-        ctx.beginPath(); ctx.arc(CX+Math.cos(aa)*arx,CY+Math.sin(aa)*ary,.7,0,Math.PI*2)
-        ctx.fillStyle=`rgba(180,162,140,${.13+Math.sin(i*7)*.05})`; ctx.fill()
+      // Asteroid dust (background filler)
+      for(let i=0;i<110;i++){
+        const aa=(i/110)*Math.PI*2+t*.003
+        const arx=(232+Math.sin(i*17.3)*8)*BSx, ary=(232+Math.sin(i*17.3)*8)*BSy
+        ctx.beginPath(); ctx.arc(CX+Math.cos(aa)*arx,CY+Math.sin(aa)*ary,.55,0,Math.PI*2)
+        ctx.fillStyle=`rgba(175,158,135,${.09+Math.sin(i*7)*.04})`; ctx.fill()
       }
+
+      // Hover detection (uses previous frame's astPosRef)
+      hovAstRef.current=null
+      if(mouseRef.current){
+        const {x:_mx,y:_my}=mouseRef.current
+        for(const a of ASTEROID_SEEDS){
+          if(astDestroyedRef.current[a.id]) continue
+          const ap=astPosRef.current[a.id]; if(!ap) continue
+          if(Math.hypot(_mx-ap.x,_my-ap.y)<ap.r){ hovAstRef.current=a.id; break }
+        }
+      }
+      cv.style.cursor=hovAstRef.current!==null?'pointer':'crosshair'
+
+      // Interactive asteroids
+      ASTEROID_SEEDS.forEach(a=>{
+        if(astDestroyedRef.current[a.id]) return
+        const aang=a.angleOffset+t*a.speed
+        const _arx=a.orbitBase*BSx, _ary=a.orbitBase*BSy
+        const ax=CX+Math.cos(aang)*_arx, ay=CY+Math.sin(aang)*_ary
+        const ar=a.size*BS*1.4
+        const isHov=hovAstRef.current===a.id
+        ctx.save(); ctx.translate(ax,ay); ctx.rotate(t*0.28+a.id)
+        const ag=ctx.createRadialGradient(0,0,0,0,0,ar*2.8)
+        ag.addColorStop(0,isHov?`rgba(255,130,60,0.48)`:`rgba(175,158,130,0.3)`); ag.addColorStop(1,'transparent')
+        ctx.fillStyle=ag; ctx.beginPath(); ctx.arc(0,0,ar*2.8,0,Math.PI*2); ctx.fill()
+        ctx.beginPath()
+        a.verts.forEach(([vx2,vy2],vi)=>{ if(vi===0) ctx.moveTo(vx2*ar,vy2*ar); else ctx.lineTo(vx2*ar,vy2*ar) })
+        ctx.closePath()
+        ctx.fillStyle=isHov?'rgba(188,155,118,0.92)':'rgba(152,137,114,0.86)'; ctx.fill()
+        ctx.strokeStyle=isHov?'rgba(255,148,68,0.82)':'rgba(198,180,155,0.55)'; ctx.lineWidth=isHov?.9:.5; ctx.stroke()
+        ctx.restore()
+        if(isHov){
+          ctx.save(); ctx.translate(ax,ay)
+          const rs=ar*3.4, bl=rs*.42
+          ctx.strokeStyle=`rgba(255,72,32,${.52+Math.sin(t*5)*.18})`; ctx.lineWidth=.8
+          for(let qi=0;qi<4;qi++){
+            ctx.save(); ctx.rotate(qi*Math.PI/2)
+            ctx.beginPath(); ctx.moveTo(-rs,-rs+bl); ctx.lineTo(-rs,-rs); ctx.lineTo(-rs+bl,-rs); ctx.stroke()
+            ctx.restore()
+          }
+          ctx.restore()
+        }
+        let sax=ax,say=ay
+        if(zf>1.02){ sax=(ax-pivotX)*zf+pivotX; say=(ay-pivotY)*zf+pivotY }
+        astPosRef.current[a.id]={x:sax,y:say,r:Math.max(ar*zf*2.8,14)}
+      })
 
       SOLAR.forEach(p=>{
         const alpha=(zIdRef.current&&zIdRef.current!==p.id)?.04:.1
@@ -467,10 +574,24 @@ function SolarCanvas({ canvasRef, onPlanetClick, zoomedId, galaxyIdx }) {
         p.moons.forEach(m=>{
           const mk=`${p.id}_${m.name}`, ma=angRef.current[mk]
           const mr2=m.orbit*BS, mx=wx+Math.cos(ma)*mr2, my=wy+Math.sin(ma)*mr2, mr=m.size*BS
-          ctx.beginPath(); ctx.arc(wx,wy,mr2,0,Math.PI*2)
-          ctx.strokeStyle=`rgba(255,255,255,${isZ?.18:.05})`; ctx.lineWidth=.3
-          ctx.setLineDash([1,6]); ctx.stroke(); ctx.setLineDash([])
-          drawMoon(m,mx,my,mr)
+          if(!m.shape||isZ){
+            ctx.beginPath(); ctx.arc(wx,wy,mr2,0,Math.PI*2)
+            ctx.strokeStyle=`rgba(255,255,255,${isZ?.18:.05})`; ctx.lineWidth=.3
+            ctx.setLineDash([1,6]); ctx.stroke(); ctx.setLineDash([])
+          }
+          if(m.shape){
+            const sg=ctx.createRadialGradient(mx,my,0,mx,my,mr*3.8)
+            sg.addColorStop(0,m.glow+'.55)'); sg.addColorStop(1,'transparent')
+            ctx.fillStyle=sg; ctx.beginPath(); ctx.arc(mx,my,mr*3.8,0,Math.PI*2); ctx.fill()
+            if(m.shape==='iss') drawISS(ctx,mx,my,mr)
+            else if(m.shape==='telescope') drawHubble(ctx,mx,my,mr)
+            else drawGPSSat(ctx,mx,my,mr)
+            let smx=mx,smy=my
+            if(zf>1.02){ smx=(mx-pivotX)*zf+pivotX; smy=(my-pivotY)*zf+pivotY }
+            satPosRef.current[mk]={x:smx,y:smy,r:Math.max(mr*zf*4,18),moon:m}
+          } else {
+            drawMoon(m,mx,my,mr)
+          }
           if(isZ&&zf>2.5){
             ctx.globalAlpha=Math.min(1,(zf-2.5)*1.5)
             ctx.fillStyle='rgba(220,220,255,.85)'
@@ -490,6 +611,18 @@ function SolarCanvas({ canvasRef, onPlanetClick, zoomedId, galaxyIdx }) {
         posRef.current[p.id]={x:sx,y:sy,r:Math.max(r*zf,18)}
       })
       ctx.restore()
+
+      // Fragment particles (screen-space, after zoom restore)
+      fragmentsRef.current=fragmentsRef.current.filter(f=>f.life>0)
+      fragmentsRef.current.forEach(f=>{
+        f.x+=f.vx*dt; f.y+=f.vy*dt; f.vx*=0.96; f.vy*=0.96; f.life-=0.018
+        ctx.save(); ctx.translate(f.x,f.y); ctx.rotate(f.spin+t)
+        ctx.fillStyle=`rgba(${f.color},${f.life*0.88})`
+        const fs=f.r*f.life
+        ctx.beginPath(); ctx.moveTo(0,-fs); ctx.lineTo(fs*.65,fs*.65); ctx.lineTo(-fs*.65,fs*.65); ctx.closePath(); ctx.fill()
+        ctx.restore()
+      })
+
       rafRef.current=requestAnimationFrame(draw)
     }
     rafRef.current=requestAnimationFrame(draw)
@@ -503,6 +636,31 @@ function SolarCanvas({ canvasRef, onPlanetClick, zoomedId, galaxyIdx }) {
       const cx=e.clientX-rect.left, cy=e.clientY-rect.top
       const W=cv.width, H=cv.height
       if(Math.hypot(cx-W/2,cy-H/2)<36){ window.open('https://rvu.edu.in','_blank'); return }
+      // Satellites
+      for(const [,sp] of Object.entries(satPosRef.current)){
+        if(Math.hypot(cx-sp.x,cy-sp.y)<sp.r){ onSatClickRef.current?.(sp.moon); return }
+      }
+      // Asteroids
+      for(const a of ASTEROID_SEEDS){
+        if(astDestroyedRef.current[a.id]) continue
+        const ap=astPosRef.current[a.id]; if(!ap) continue
+        if(Math.hypot(cx-ap.x,cy-ap.y)<ap.r){
+          astDestroyedRef.current[a.id]=true
+          for(let fi=0;fi<16;fi++){
+            const fa=(fi/16)*Math.PI*2+Math.random()*.4
+            const fspd=55+Math.random()*95
+            fragmentsRef.current.push({
+              x:ap.x,y:ap.y,
+              vx:Math.cos(fa)*fspd,vy:Math.sin(fa)*fspd,
+              life:1,r:2.2+Math.random()*2.8,
+              spin:Math.random()*Math.PI,
+              color:`${138+Math.floor(Math.random()*58)},${98+Math.floor(Math.random()*52)},${52+Math.floor(Math.random()*36)}`,
+            })
+          }
+          onAstDestroyRef.current?.(); return
+        }
+      }
+      // Planets
       for(const p of SOLAR){
         const pos=posRef.current[p.id]; if(!pos) continue
         if(Math.hypot(cx-pos.x,cy-pos.y)<pos.r+12){ onPlanetClick(p); return }
@@ -512,6 +670,15 @@ function SolarCanvas({ canvasRef, onPlanetClick, zoomedId, galaxyIdx }) {
     cv.addEventListener('click',handleClick)
     return()=>cv.removeEventListener('click',handleClick)
   },[onPlanetClick])
+
+  useEffect(()=>{
+    const cv=canvasRef.current; if(!cv) return
+    const onMove=(e)=>{ const r=cv.getBoundingClientRect(); mouseRef.current={x:e.clientX-r.left,y:e.clientY-r.top} }
+    const onLeave=()=>{ mouseRef.current=null; cv.style.cursor='crosshair' }
+    cv.addEventListener('mousemove',onMove)
+    cv.addEventListener('mouseleave',onLeave)
+    return()=>{ cv.removeEventListener('mousemove',onMove); cv.removeEventListener('mouseleave',onLeave) }
+  },[])
 
   return null
 }
@@ -629,11 +796,36 @@ function PlanetCard({ planet, onRoute, onDismiss, savedMajor, onChangeMajor }) {
   )
 }
 
+// ── Satellite Info Card ───────────────────────────────────────────────────
+function SatCard({ satellite, onDismiss }) {
+  if (!satellite) return null
+  return (
+    <div style={{
+      position:'fixed', bottom:72, right:24, zIndex:210,
+      width:'min(280px,calc(100vw - 32px))',
+      background:'rgba(6,9,20,0.92)', backdropFilter:'blur(22px)',
+      border:'1px solid rgba(200,213,226,0.3)',
+      padding:'14px 16px',
+      boxShadow:'0 10px 48px rgba(0,0,0,0.6),0 0 32px rgba(200,213,226,0.06)',
+      animation:'slideUpFade .38s cubic-bezier(.34,1.56,.64,1) both',
+    }}>
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:9 }}>
+        <div style={{ fontFamily:"'DM Mono',monospace", fontSize:8, letterSpacing:'2.5px', color:'rgba(200,213,226,.55)', textTransform:'uppercase' }}>Earth Orbit</div>
+        <button onClick={onDismiss} style={{ width:22,height:22,background:'rgba(255,255,255,.06)',border:'1px solid rgba(255,255,255,.1)',color:'rgba(255,255,255,.4)',cursor:'pointer',fontSize:10,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,transition:'color .15s' }} onMouseEnter={e=>e.currentTarget.style.color='#F5EFEB'} onMouseLeave={e=>e.currentTarget.style.color='rgba(255,255,255,.4)'}>✕</button>
+      </div>
+      <div style={{ fontFamily:"'Hanken Grotesk',sans-serif", fontWeight:300, fontSize:14, color:'#F5EFEB', marginBottom:7, letterSpacing:'-0.2px' }}>{satellite.name}</div>
+      <div style={{ fontFamily:"'DM Mono',monospace", fontSize:10, color:'rgba(255,255,255,.45)', lineHeight:1.72 }}>{satellite.fact}</div>
+    </div>
+  )
+}
+
 // ── Space Selection Screen ────────────────────────────────────────────────
 export default function SpaceSelectionScreen({ onSelect, onClose, savedMajor, onSetMajor }) {
   const [selectedPlanet,setSelectedPlanet]=useState(null)
+  const [selectedSatellite,setSelectedSatellite]=useState(null)
   const [zoomedId,setZoomedId]=useState(null)
   const [activeGalaxy,setActiveGalaxy]=useState(0)
+  const [score,setScore]=useState(0)
   const starsRef=useRef(null), solarRef=useRef(null)
   const warpRef=useRef({ active:false, progress:0, called:false, callback:null })
 
@@ -642,7 +834,10 @@ export default function SpaceSelectionScreen({ onSelect, onClose, savedMajor, on
     setSelectedPlanet(planet); setZoomedId(planet.id)
   },[])
 
-  const handleDismiss=()=>{ setSelectedPlanet(null); setZoomedId(null) }
+  const handleSatelliteClick=useCallback(moon=>setSelectedSatellite(moon),[])
+  const handleAsteroidDestroy=useCallback(()=>setScore(s=>s+1),[])
+
+  const handleDismiss=()=>{ setSelectedPlanet(null); setZoomedId(null); setSelectedSatellite(null) }
 
   const handleChangeMajor=()=>{ onSetMajor?.({}) }
 
@@ -659,7 +854,7 @@ export default function SpaceSelectionScreen({ onSelect, onClose, savedMajor, on
       <canvas ref={starsRef} style={{ position:'absolute',inset:0,zIndex:1 }} />
       <StarFieldCanvas canvasRef={starsRef} warpRef={warpRef} galaxyIdx={activeGalaxy} />
       <canvas ref={solarRef} style={{ position:'absolute',inset:0,zIndex:2,cursor:'crosshair' }} />
-      <SolarCanvas canvasRef={solarRef} onPlanetClick={handlePlanetClick} zoomedId={zoomedId} galaxyIdx={activeGalaxy} />
+      <SolarCanvas canvasRef={solarRef} onPlanetClick={handlePlanetClick} zoomedId={zoomedId} galaxyIdx={activeGalaxy} onSatelliteClick={handleSatelliteClick} onAsteroidDestroy={handleAsteroidDestroy} />
 
       <div style={{ position:'absolute',top:0,left:0,right:0,zIndex:10,padding:'20px 24px',display:'flex',alignItems:'center',justifyContent:'space-between',background:'linear-gradient(rgba(5,7,16,0.82),transparent)' }}>
         <div>
@@ -669,11 +864,19 @@ export default function SpaceSelectionScreen({ onSelect, onClose, savedMajor, on
         {onClose&&(<button onClick={onClose} style={{ width:36,height:36,background:'rgba(255,255,255,.06)',border:'1px solid rgba(255,255,255,.12)',color:'#8B8986',cursor:'pointer',fontSize:14,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0 }}>✕</button>)}
       </div>
 
-      {selectedPlanet&&(<div onClick={handleDismiss} style={{ position:'absolute',inset:0,background:'rgba(0,0,0,.35)',zIndex:5,animation:'fadeIn .4s ease both' }} />)}
+      {score>0&&(
+        <div style={{ position:'absolute',top:76,right:24,zIndex:10,textAlign:'right',fontFamily:"'DM Mono',monospace" }}>
+          <div style={{ fontSize:11,letterSpacing:'1.5px',color:'#F1B497',textShadow:'0 0 14px rgba(241,180,151,0.5)' }}>✦ {score}/{ASTEROID_SEEDS.length}</div>
+          {score===ASTEROID_SEEDS.length&&<div style={{ fontSize:8,letterSpacing:'2px',color:'rgba(241,180,151,.5)',textTransform:'uppercase',marginTop:2 }}>Belt cleared</div>}
+        </div>
+      )}
 
-      {!selectedPlanet&&(<div style={{ position:'absolute',bottom:70,left:'50%',transform:'translateX(-50%)',fontFamily:"'DM Mono',monospace",fontSize:9,letterSpacing:'2px',color:'rgba(255,255,255,.22)',textTransform:'uppercase',zIndex:10,whiteSpace:'nowrap',animation:'fadeUp .6s ease 1.2s both' }}>Click a planet to select your semester</div>)}
+      {(selectedPlanet||selectedSatellite)&&(<div onClick={handleDismiss} style={{ position:'absolute',inset:0,background:'rgba(0,0,0,.35)',zIndex:5,animation:'fadeIn .4s ease both' }} />)}
+
+      {!selectedPlanet&&!selectedSatellite&&(<div style={{ position:'absolute',bottom:70,left:'50%',transform:'translateX(-50%)',fontFamily:"'DM Mono',monospace",fontSize:9,letterSpacing:'2px',color:'rgba(255,255,255,.22)',textTransform:'uppercase',zIndex:10,whiteSpace:'nowrap',animation:'fadeUp .6s ease 1.2s both' }}>Click a planet to select · hover asteroids to target</div>)}
 
       <PlanetCard planet={selectedPlanet} onRoute={handleRoute} onDismiss={handleDismiss} savedMajor={savedMajor} onChangeMajor={handleChangeMajor} />
+      <SatCard satellite={selectedSatellite} onDismiss={()=>setSelectedSatellite(null)} />
 
       <GalaxyNav active={activeGalaxy} onChange={setActiveGalaxy} />
     </div>
