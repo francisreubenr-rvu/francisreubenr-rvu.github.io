@@ -766,29 +766,31 @@ function PlanetCard({ planet, onRoute, onDismiss, savedMajor, onChangeMajor }) {
         </div>
       )}
 
-      {/* Action buttons */}
-      <div style={{ display:'flex', gap:8 }}>
-        {planet.divides ? (
-          planet.divides.map(d => (
-            <button key={d} onClick={() => onRoute(planet.sem, d)}
+      {/* Action buttons — only for available (non-comingSoon) planets */}
+      {!planet.comingSoon && (
+        <div style={{ display:'flex', gap:8 }}>
+          {planet.divides ? (
+            planet.divides.map(d => (
+              <button key={d} onClick={() => onRoute(planet.sem, d)}
+                style={{ flex:1, padding:'10px 0', background:`${planet.glow}0.07)`, border:`1px solid ${planet.glow}0.32)`, color:'#F5EFEB', fontFamily:"'Hanken Grotesk',sans-serif", fontSize:12, letterSpacing:'.5px', cursor:'pointer', transition:'background .15s' }}
+                onMouseEnter={e=>e.currentTarget.style.background=`${planet.glow}0.2)`}
+                onMouseLeave={e=>e.currentTarget.style.background=`${planet.glow}0.07)`}>
+                {d}
+              </button>
+            ))
+          ) : (
+            <button onClick={() => onRoute(planet.sem, 'EEX')}
               style={{ flex:1, padding:'10px 0', background:`${planet.glow}0.07)`, border:`1px solid ${planet.glow}0.32)`, color:'#F5EFEB', fontFamily:"'Hanken Grotesk',sans-serif", fontSize:12, letterSpacing:'.5px', cursor:'pointer', transition:'background .15s' }}
               onMouseEnter={e=>e.currentTarget.style.background=`${planet.glow}0.2)`}
               onMouseLeave={e=>e.currentTarget.style.background=`${planet.glow}0.07)`}>
-              {d}
+              Enter ↗
             </button>
-          ))
-        ) : (
-          <button onClick={() => onRoute(planet.sem, 'EEX')}
-            style={{ flex:1, padding:'10px 0', background:`${planet.glow}0.07)`, border:`1px solid ${planet.glow}0.32)`, color: planet.comingSoon ? 'rgba(255,255,255,.55)' : '#F5EFEB', fontFamily:"'Hanken Grotesk',sans-serif", fontSize:12, letterSpacing:'.5px', cursor:'pointer', transition:'background .15s' }}
-            onMouseEnter={e=>e.currentTarget.style.background=`${planet.glow}0.2)`}
-            onMouseLeave={e=>e.currentTarget.style.background=`${planet.glow}0.07)`}>
-            {planet.comingSoon ? 'Preview ↗' : 'Enter ↗'}
-          </button>
-        )}
-      </div>
+          )}
+        </div>
+      )}
 
       {planet.comingSoon && (
-        <div style={{ marginTop:10, fontFamily:"'DM Mono',monospace", fontSize:8, letterSpacing:'2px', color:'rgba(255,255,255,.2)', textTransform:'uppercase', textAlign:'center' }}>
+        <div style={{ marginTop:2, fontFamily:"'DM Mono',monospace", fontSize:8, letterSpacing:'2px', color:'rgba(255,255,255,.2)', textTransform:'uppercase', textAlign:'center' }}>
           ✦ coming soon
         </div>
       )}

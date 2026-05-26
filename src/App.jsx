@@ -278,7 +278,7 @@ function SelectionScreen({ onSelect, onClose, savedMajor, onMajorChange }) {
                 Applied from Year 2 onwards · saved to your profile
               </p>
             </div>
-            <NeuralOrbit savedMajor={savedMaj} onSelect={handleMajorSelect} />
+            <NeuralOrbit savedMajor={savedMajor} onSelect={handleMajorSelect} />
             <button onClick={() => setShowMajor(false)} style={{ marginTop:24, background:'none', border:'none', fontFamily:"'DM Mono',monospace", fontSize:10, color:'rgba(255,255,255,.3)', cursor:'pointer', letterSpacing:'1px', textTransform:'uppercase' }}>
               Cancel
             </button>
