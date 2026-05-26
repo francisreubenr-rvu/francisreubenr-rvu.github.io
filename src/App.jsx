@@ -185,9 +185,8 @@ function NeuralOrbit({ savedMajor, onSelect }) {
 }
 
 // ── Selection Screen (SpaceSelectionScreen + NeuralOrbit overlay) ──
-function SelectionScreen({ onSelect, onClose }) {
+function SelectionScreen({ onSelect, onClose, savedMajor, onMajorChange }) {
   const [showMajor,    setShowMajor]    = useState(false)
-  const [savedMaj,     setSavedMaj]     = useState(() => loadMajor())
   const [pendingRoute, setPendingRoute] = useState(null)
 
   const handleSetMajor = (data) => {
@@ -197,7 +196,7 @@ function SelectionScreen({ onSelect, onClose }) {
 
   const handleMajorSelect = (m) => {
     saveMajor({ id: m.id })
-    setSavedMaj({ id: m.id })
+    onMajorChange?.({ id: m.id })
     setShowMajor(false)
     if (pendingRoute) {
       onSelect(pendingRoute.pendingSem, pendingRoute.pendingDivide)
@@ -210,7 +209,7 @@ function SelectionScreen({ onSelect, onClose }) {
       <SpaceSelectionScreen
         onSelect={onSelect}
         onClose={onClose}
-        savedMajor={savedMaj}
+        savedMajor={savedMajor}
         onSetMajor={handleSetMajor}
       />
       {showMajor && (
@@ -291,13 +290,12 @@ function SelectionScreen({ onSelect, onClose }) {
 }
 
 // ── Hero ─────────────────────────────────────────────────────
-function Hero({ selection, sgpa, courses }) {
+function Hero({ selection, sgpa, courses, savedMajor }) {
   const isMajorSem = selection ? (SEMESTERS.find(s => s.id === selection.semester)?.comingSoon ?? false) : false
   const majorData  = useMemo(() => {
-    if (!isMajorSem) return null
-    const m = loadMajor()
-    return m ? MAJORS.find(x => x.id === m.id) : null
-  }, [isMajorSem])
+    if (!isMajorSem || !savedMajor) return null
+    return MAJORS.find(x => x.id === savedMajor.id) ?? null
+  }, [isMajorSem, savedMajor])
 
   return (
     <div style={{ position:'relative', overflow:'hidden', background:'#090c15', minHeight:'48vh', display:'flex', alignItems:'flex-end' }}>
@@ -371,16 +369,17 @@ function FloatBtn({ onClick }) {
 
 // ── App ───────────────────────────────────────────────────────
 export default function App() {
-  const [selection,  setSelection]  = useState(() => loadSelection())
-  const [courses,    setCourses]    = useState(() => {
+  const [selection,   setSelection]  = useState(() => loadSelection())
+  const [courses,     setCourses]    = useState(() => {
     if (!selection) return []
     return loadCoursesForDivide(selection.semester, selection.divide)
         ?? makeCoursesFromTemplate(
              (DIVIDES[selection.semester]?.find(d => d.id === selection.divide)?.courses) ?? EEX_COURSES
            )
   })
-  const [activeTab,  setActiveTab]  = useState('courses')
-  const [switchOpen, setSwitchOpen] = useState(false)
+  const [activeTab,   setActiveTab]  = useState('courses')
+  const [switchOpen,  setSwitchOpen] = useState(false)
+  const [savedMajor,  setSavedMajor] = useState(() => loadMajor())
 
   useEffect(() => {
     if (selection) saveCoursesForDivide(selection.semester, selection.divide, courses)
@@ -435,6 +434,12 @@ export default function App() {
     try { localStorage.removeItem(courseKey(selection.semester, selection.divide)) } catch {}
   }, [selection])
 
+  const handleMajorTabSelect = useCallback((m) => {
+    saveMajor({ id: m.id })
+    setSavedMajor({ id: m.id })
+    setActiveTab('courses')
+  }, [])
+
   const sgpa         = calculateSGPA(courses)
   const scored       = courses.filter(c => c.creditGradeProduct !== null)
   const totalCredits = scored.reduce((s, c) => s + c.credits, 0)
@@ -445,7 +450,7 @@ export default function App() {
 
   // No selection — show full-screen space selector
   if (!selection && !switchOpen) {
-    return <SelectionScreen onSelect={handleSelect} />
+    return <SelectionScreen onSelect={handleSelect} savedMajor={savedMajor} onMajorChange={setSavedMajor} />
   }
 
   // Switch overlay
@@ -458,17 +463,17 @@ export default function App() {
         exit={{ opacity:0 }}
         transition={{ duration:.25 }}
       >
-        <SelectionScreen onSelect={handleSelect} onClose={() => setSwitchOpen(false)} />
+        <SelectionScreen onSelect={handleSelect} onClose={() => setSwitchOpen(false)} savedMajor={savedMajor} onMajorChange={setSavedMajor} />
       </motion.div>
     )
   }
 
   return (
     <div style={{ minHeight:'100vh', background:'#0d1525', fontFamily:"'Hanken Grotesk',system-ui,sans-serif" }}>
-      <Header activeTab={activeTab} setActiveTab={setActiveTab} selection={selection} sgpa={sgpa} onSwitch={() => setSwitchOpen(true)} />
+      <Header activeTab={activeTab} setActiveTab={setActiveTab} selection={selection} sgpa={sgpa} onSwitch={() => setSwitchOpen(true)} showMajorTab={isComingSoon} />
 
       {activeTab === 'courses' && (
-        <Hero selection={selection} sgpa={sgpa} courses={courses} />
+        <Hero selection={selection} sgpa={sgpa} courses={courses} savedMajor={savedMajor} />
       )}
 
       {activeTab !== 'courses' && (
@@ -477,8 +482,13 @@ export default function App() {
             RV University · SGPA Calculator
           </p>
           <h1 style={{ fontFamily:"'Hanken Grotesk',sans-serif", fontWeight:300, fontSize:'clamp(32px,5vw,56px)', letterSpacing:'-1.5px', color:'#F5EFEB', margin:0 }}>
-            {activeTab === 'dashboard' ? 'Dashboard.' : activeTab === 'reverse' ? 'Reverse Calc.' : 'Settings.'}
+            {activeTab === 'dashboard' ? 'Dashboard.' : activeTab === 'reverse' ? 'Reverse Calc.' : activeTab === 'major' ? 'Your Major.' : 'Settings.'}
           </h1>
+          {activeTab === 'major' && (
+            <p style={{ fontFamily:"'DM Mono',monospace", fontSize:10, color:'#8B8986', marginTop:10 }}>
+              Applied from Year 2 onwards · saved to your profile
+            </p>
+          )}
         </div>
       )}
 
@@ -499,6 +509,11 @@ export default function App() {
             )}
             {activeTab === 'reverse' && (
               <ReverseCalculator courses={courses} sgpa={sgpa} />
+            )}
+            {activeTab === 'major' && (
+              <div style={{ display:'flex', flexDirection:'column', alignItems:'center', paddingTop:8 }}>
+                <NeuralOrbit savedMajor={savedMajor} onSelect={handleMajorTabSelect} />
+              </div>
             )}
             {activeTab === 'settings' && (
               <Settings courses={courses} sgpa={sgpa} onReset={resetAll} onImport={importCourses} onSwitchDivide={() => setSwitchOpen(true)} selection={selection} />

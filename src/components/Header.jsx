@@ -12,7 +12,7 @@ const HEADER_STARS = Array.from({ length: 10 }, (_, i) => ({
   dur:   2.4 + (i % 4) * 1.1,
 }))
 
-export default function Header({ activeTab, setActiveTab, selection, sgpa, onSwitch }) {
+export default function Header({ activeTab, setActiveTab, selection, sgpa, onSwitch, showMajorTab }) {
   const displaySGPA = useAnimatedNumber(sgpa ?? 0, 700, 2)
 
   return (
@@ -41,7 +41,7 @@ export default function Header({ activeTab, setActiveTab, selection, sgpa, onSwi
         </div>
 
         <nav style={{ display:'flex', alignItems:'center', flex:1, overflowX:'auto', scrollbarWidth:'none' }}>
-          {TABS.map(t => (
+          {TABS.filter(t => t.id !== 'major' || showMajorTab).map(t => (
             <button key={t.id} onClick={() => setActiveTab(t.id)}
               style={{ padding:'0 16px', height:52, background:'none', border:'none', cursor:'pointer', fontFamily:"'Hanken Grotesk',sans-serif", fontSize:12, color:activeTab===t.id?'#F5EFEB':'#8B8986', whiteSpace:'nowrap', position:'relative', transition:'color .15s' }}
               onMouseEnter={e => { if (activeTab !== t.id) e.currentTarget.style.color='#F5EFEB' }}
