@@ -1,15 +1,16 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { MAJORS } from '../utils/constants'
 
 // ── Planet data (real-scaled orbits, sizes, 3× faster speeds) ────────────
 const SOLAR = [
   { id:'mercury', name:'Mercury', sem:'sem1', label:'Semester 1', orbit:70,  size:5,  speed:0.28,  color:'#B4B4B4', glow:'rgba(200,200,200,', grad:[[0,'#D0D0D0'],[0.6,'#888'],[1,'#555']], bands:null, rings:false, ringParticles:false, moons:[], available:true, completed:true, comingSoon:false, fact:'Fastest planet. No atmosphere. Extreme temperature swings.', divides:['EEX','ES'], noiseSeed:11 },
   { id:'venus',   name:'Venus',   sem:'sem2', label:'Semester 2', orbit:105, size:8,  speed:0.18,  color:'#E8C484', glow:'rgba(255,210,120,', grad:[[0,'#FFDF9A'],[0.6,'#C89040'],[1,'#A07020']], bands:null, rings:false, ringParticles:false, moons:[], available:true, completed:false, comingSoon:false, fact:'Hottest planet. Shrouded in toxic clouds. Rotates retrograde.', divides:['EEX','ES'], noiseSeed:22 },
-  { id:'earth',   name:'Earth',   sem:'sem3', label:'Semester 3', orbit:153, size:10, speed:0.12,  color:'#4B7BE5', glow:'rgba(100,155,255,', grad:[[0,'#6B9BFF'],[0.45,'#2B55C8'],[1,'#102888']], bands:null, rings:false, ringParticles:false, moons:[{name:'Moon',orbit:22,size:3.2,speed:0.058,color:'#CCCCCC',glow:'rgba(200,200,200,'}], available:true, comingSoon:true, fact:'Our home. Year 2 specialisations begin here.', divides:null, noiseSeed:33 },
-  { id:'mars',    name:'Mars',    sem:'sem4', label:'Semester 4', orbit:198, size:6,  speed:0.08,  color:'#C1440E', glow:'rgba(220,80,30,',   grad:[[0,'#E06640'],[0.6,'#A03010'],[1,'#601000']], bands:null, rings:false, ringParticles:false, moons:[{name:'Phobos',orbit:19,size:2.5,speed:0.09,color:'#AAA',glow:'rgba(170,170,170,'},{name:'Deimos',orbit:29,size:2,speed:0.053,color:'#999',glow:'rgba(150,150,150,'}], available:true, comingSoon:true, fact:'The Red Planet. Home to Olympus Mons, tallest known volcano.', divides:null, noiseSeed:44 },
-  { id:'jupiter', name:'Jupiter', sem:'sem5', label:'Semester 5', orbit:276, size:22, speed:0.05,  color:'#C88B3A', glow:'rgba(220,160,80,',  grad:null, bands:['#C8883A','#E4B86A','#A86020','#D89850','#F0CC80','#A86020','#C8883A','#E4B86A','#B87030'], rings:false, ringParticles:false, moons:[{name:'Io',orbit:35,size:3.5,speed:0.068,color:'#FFD700',glow:'rgba(255,215,0,'},{name:'Europa',orbit:46,size:3,speed:0.048,color:'#D4C8A0',glow:'rgba(210,200,160,'},{name:'Ganymede',orbit:58,size:4,speed:0.033,color:'#A89060',glow:'rgba(170,145,100,'},{name:'Callisto',orbit:71,size:3.5,speed:0.024,color:'#887060',glow:'rgba(140,115,100,'}], available:true, comingSoon:true, fact:"King of planets. Great Red Spot: a storm older than recorded history.", divides:null, noiseSeed:55 },
-  { id:'saturn',  name:'Saturn',  sem:'sem6', label:'Semester 6', orbit:382, size:18, speed:0.032, color:'#E4D191', glow:'rgba(240,220,130,', grad:null, bands:['#D8C070','#F0E090','#C8A850','#E8D880','#F0E090','#C8A850','#D8C070','#E8D060'], rings:true, ringParticles:false, moons:[{name:'Titan',orbit:40,size:4,speed:0.038,color:'#E8A020',glow:'rgba(230,160,30,'},{name:'Enceladus',orbit:52,size:2.5,speed:0.052,color:'#EEEEFF',glow:'rgba(220,220,255,'},{name:'Rhea',orbit:64,size:3,speed:0.033,color:'#CCCCCC',glow:'rgba(200,200,200,'}], available:true, comingSoon:true, fact:'The Ringed Beauty. Rings span 282,000 km — mostly ice.', divides:null, noiseSeed:66 },
-  { id:'uranus',  name:'Uranus',  sem:'sem7', label:'Semester 7', orbit:464, size:13, speed:0.019, color:'#7DE8E8', glow:'rgba(120,230,230,', grad:[[0,'#A0FFFF'],[0.5,'#50C8C8'],[1,'#208080']], bands:null, rings:false, ringParticles:true, ringColor:'rgba(160,220,220,', moons:[{name:'Miranda',orbit:27,size:2.5,speed:0.058,color:'#BBCCDD',glow:'rgba(180,200,220,'},{name:'Ariel',orbit:37,size:3,speed:0.043,color:'#AABBCC',glow:'rgba(170,188,204,'},{name:'Umbriel',orbit:47,size:2.8,speed:0.031,color:'#99AABB',glow:'rgba(155,170,187,'}], available:true, comingSoon:true, fact:'Ice giant tilted 98°. Its axis is nearly horizontal.', divides:null, noiseSeed:77 },
-  { id:'neptune', name:'Neptune', sem:'sem8', label:'Semester 8', orbit:534, size:12, speed:0.013, color:'#4B70DD', glow:'rgba(100,130,240,', grad:[[0,'#8090FF'],[0.5,'#3050CC'],[1,'#1030AA']], bands:null, rings:false, ringParticles:true, ringColor:'rgba(80,100,200,', moons:[{name:'Triton',orbit:30,size:3.5,speed:0.047,color:'#CCCCFF',glow:'rgba(200,200,255,'},{name:'Nereid',orbit:42,size:2,speed:0.033,color:'#AAAACC',glow:'rgba(170,170,204,'}], available:true, comingSoon:true, fact:'Windiest world. Storms reach 2,100 km/h. Most distant planet.', divides:null, noiseSeed:88 },
+  { id:'earth',   name:'Earth',   sem:'sem3', label:'Semester 3', orbit:153, size:10, speed:0.12,  color:'#4B7BE5', glow:'rgba(100,155,255,', grad:[[0,'#6B9BFF'],[0.45,'#2B55C8'],[1,'#102888']], bands:null, rings:false, ringParticles:false, moons:[{name:'Moon',orbit:22,size:3.2,speed:0.058,color:'#CCCCCC',glow:'rgba(200,200,200,'}], available:true, comingSoon:true, fact:'Our home. Year 2 specialisations begin here.', divides:['EEX','ES'], noiseSeed:33 },
+  { id:'mars',    name:'Mars',    sem:'sem4', label:'Semester 4', orbit:198, size:6,  speed:0.08,  color:'#C1440E', glow:'rgba(220,80,30,',   grad:[[0,'#E06640'],[0.6,'#A03010'],[1,'#601000']], bands:null, rings:false, ringParticles:false, moons:[{name:'Phobos',orbit:19,size:2.5,speed:0.09,color:'#AAA',glow:'rgba(170,170,170,'},{name:'Deimos',orbit:29,size:2,speed:0.053,color:'#999',glow:'rgba(150,150,150,'}], available:true, comingSoon:true, fact:'The Red Planet. Home to Olympus Mons, tallest known volcano.', divides:['EEX','ES'], noiseSeed:44 },
+  { id:'jupiter', name:'Jupiter', sem:'sem5', label:'Semester 5', orbit:276, size:22, speed:0.05,  color:'#C88B3A', glow:'rgba(220,160,80,',  grad:null, bands:['#C8883A','#E4B86A','#A86020','#D89850','#F0CC80','#A86020','#C8883A','#E4B86A','#B87030'], rings:false, ringParticles:false, moons:[{name:'Io',orbit:35,size:3.5,speed:0.068,color:'#FFD700',glow:'rgba(255,215,0,'},{name:'Europa',orbit:46,size:3,speed:0.048,color:'#D4C8A0',glow:'rgba(210,200,160,'},{name:'Ganymede',orbit:58,size:4,speed:0.033,color:'#A89060',glow:'rgba(170,145,100,'},{name:'Callisto',orbit:71,size:3.5,speed:0.024,color:'#887060',glow:'rgba(140,115,100,'}], available:true, comingSoon:true, fact:"King of planets. Great Red Spot: a storm older than recorded history.", divides:['EEX','ES'], noiseSeed:55 },
+  { id:'saturn',  name:'Saturn',  sem:'sem6', label:'Semester 6', orbit:382, size:18, speed:0.032, color:'#E4D191', glow:'rgba(240,220,130,', grad:null, bands:['#D8C070','#F0E090','#C8A850','#E8D880','#F0E090','#C8A850','#D8C070','#E8D060'], rings:true, ringParticles:false, moons:[{name:'Titan',orbit:40,size:4,speed:0.038,color:'#E8A020',glow:'rgba(230,160,30,'},{name:'Enceladus',orbit:52,size:2.5,speed:0.052,color:'#EEEEFF',glow:'rgba(220,220,255,'},{name:'Rhea',orbit:64,size:3,speed:0.033,color:'#CCCCCC',glow:'rgba(200,200,200,'}], available:true, comingSoon:true, fact:'The Ringed Beauty. Rings span 282,000 km — mostly ice.', divides:['EEX','ES'], noiseSeed:66 },
+  { id:'uranus',  name:'Uranus',  sem:'sem7', label:'Semester 7', orbit:464, size:13, speed:0.019, color:'#7DE8E8', glow:'rgba(120,230,230,', grad:[[0,'#A0FFFF'],[0.5,'#50C8C8'],[1,'#208080']], bands:null, rings:false, ringParticles:true, ringColor:'rgba(160,220,220,', moons:[{name:'Miranda',orbit:27,size:2.5,speed:0.058,color:'#BBCCDD',glow:'rgba(180,200,220,'},{name:'Ariel',orbit:37,size:3,speed:0.043,color:'#AABBCC',glow:'rgba(170,188,204,'},{name:'Umbriel',orbit:47,size:2.8,speed:0.031,color:'#99AABB',glow:'rgba(155,170,187,'}], available:true, comingSoon:true, fact:'Ice giant tilted 98°. Its axis is nearly horizontal.', divides:['EEX','ES'], noiseSeed:77 },
+  { id:'neptune', name:'Neptune', sem:'sem8', label:'Semester 8', orbit:534, size:12, speed:0.013, color:'#4B70DD', glow:'rgba(100,130,240,', grad:[[0,'#8090FF'],[0.5,'#3050CC'],[1,'#1030AA']], bands:null, rings:false, ringParticles:true, ringColor:'rgba(80,100,200,', moons:[{name:'Triton',orbit:30,size:3.5,speed:0.047,color:'#CCCCFF',glow:'rgba(200,200,255,'},{name:'Nereid',orbit:42,size:2,speed:0.033,color:'#AAAACC',glow:'rgba(170,170,204,'}], available:true, comingSoon:true, fact:'Windiest world. Storms reach 2,100 km/h. Most distant planet.', divides:['EEX','ES'], noiseSeed:88 },
 ]
 
 const CONSTELLATIONS = [
@@ -537,8 +538,9 @@ function GalaxyNav({ active, onChange }) {
 }
 
 // ── Planet Card (compact floating panel) ─────────────────────────────────
-function PlanetCard({ planet, onRoute, onDismiss }) {
+function PlanetCard({ planet, onRoute, onDismiss, savedMajor, onChangeMajor }) {
   if (!planet) return null
+  const majorData = planet.comingSoon && savedMajor ? MAJORS.find(m => m.id === savedMajor.id) : null
   return (
     <div style={{
       position: 'fixed', bottom: 72, left: '50%', transform: 'translateX(-50%)',
@@ -571,9 +573,31 @@ function PlanetCard({ planet, onRoute, onDismiss }) {
       </div>
 
       {/* Fact */}
-      <div style={{ fontFamily:"'DM Mono',monospace", fontSize:10, color:'rgba(255,255,255,.35)', lineHeight:1.65, marginBottom:16, paddingBottom:14, borderBottom:'1px solid rgba(255,255,255,.07)' }}>
+      <div style={{ fontFamily:"'DM Mono',monospace", fontSize:10, color:'rgba(255,255,255,.35)', lineHeight:1.65, marginBottom:12, paddingBottom:12, borderBottom:'1px solid rgba(255,255,255,.07)' }}>
         {planet.fact}
       </div>
+
+      {/* Major row — only for sem3+ */}
+      {planet.comingSoon && (
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14, paddingBottom:12, borderBottom:'1px solid rgba(255,255,255,.07)' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+            {majorData ? (
+              <>
+                <div style={{ width:6, height:6, borderRadius:'50%', background:majorData.color, boxShadow:`0 0 8px ${majorData.color}`, flexShrink:0 }} />
+                <span style={{ fontFamily:"'DM Mono',monospace", fontSize:10, color:'rgba(255,255,255,.55)' }}>{majorData.label}</span>
+              </>
+            ) : (
+              <span style={{ fontFamily:"'DM Mono',monospace", fontSize:10, color:'rgba(241,180,151,.5)' }}>No major selected</span>
+            )}
+          </div>
+          <button onClick={onChangeMajor}
+            style={{ background:'none', border:'none', fontFamily:"'DM Mono',monospace", fontSize:9, letterSpacing:'1px', textTransform:'uppercase', color:'rgba(241,180,151,.6)', cursor:'pointer', padding:'2px 0', transition:'color .15s' }}
+            onMouseEnter={e => e.currentTarget.style.color='#F1B497'}
+            onMouseLeave={e => e.currentTarget.style.color='rgba(241,180,151,.6)'}>
+            {majorData ? 'Change ↗' : 'Select →'}
+          </button>
+        </div>
+      )}
 
       {/* Action buttons */}
       <div style={{ display:'flex', gap:8 }}>
@@ -620,6 +644,8 @@ export default function SpaceSelectionScreen({ onSelect, onClose, savedMajor, on
 
   const handleDismiss=()=>{ setSelectedPlanet(null); setZoomedId(null) }
 
+  const handleChangeMajor=()=>{ onSetMajor?.({}) }
+
   const handleRoute=(sem,divide)=>{
     const planet=SOLAR.find(p=>p.sem===sem)
     if(planet?.comingSoon && !savedMajor){ onSetMajor?.({ pendingSem:sem, pendingDivide:divide }); return }
@@ -647,7 +673,7 @@ export default function SpaceSelectionScreen({ onSelect, onClose, savedMajor, on
 
       {!selectedPlanet&&(<div style={{ position:'absolute',bottom:70,left:'50%',transform:'translateX(-50%)',fontFamily:"'DM Mono',monospace",fontSize:9,letterSpacing:'2px',color:'rgba(255,255,255,.22)',textTransform:'uppercase',zIndex:10,whiteSpace:'nowrap',animation:'fadeUp .6s ease 1.2s both' }}>Click a planet to select your semester</div>)}
 
-      <PlanetCard planet={selectedPlanet} onRoute={handleRoute} onDismiss={handleDismiss} />
+      <PlanetCard planet={selectedPlanet} onRoute={handleRoute} onDismiss={handleDismiss} savedMajor={savedMajor} onChangeMajor={handleChangeMajor} />
 
       <GalaxyNav active={activeGalaxy} onChange={setActiveGalaxy} />
     </div>

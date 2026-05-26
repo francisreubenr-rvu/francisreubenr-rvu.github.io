@@ -101,7 +101,6 @@ export const TABS = [
   { id: 'courses',   label: 'Courses'      },
   { id: 'dashboard', label: 'Dashboard'    },
   { id: 'reverse',   label: 'Reverse Calc' },
-  { id: 'major',     label: 'Major'        },
   { id: 'settings',  label: 'Settings'     },
 ]
 

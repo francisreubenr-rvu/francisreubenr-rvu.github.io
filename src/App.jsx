@@ -434,12 +434,6 @@ export default function App() {
     try { localStorage.removeItem(courseKey(selection.semester, selection.divide)) } catch {}
   }, [selection])
 
-  const handleMajorTabSelect = useCallback((m) => {
-    saveMajor({ id: m.id })
-    setSavedMajor({ id: m.id })
-    setActiveTab('courses')
-  }, [])
-
   const sgpa         = calculateSGPA(courses)
   const scored       = courses.filter(c => c.creditGradeProduct !== null)
   const totalCredits = scored.reduce((s, c) => s + c.credits, 0)
@@ -470,7 +464,7 @@ export default function App() {
 
   return (
     <div style={{ minHeight:'100vh', background:'#0d1525', fontFamily:"'Hanken Grotesk',system-ui,sans-serif" }}>
-      <Header activeTab={activeTab} setActiveTab={setActiveTab} selection={selection} sgpa={sgpa} onSwitch={() => setSwitchOpen(true)} showMajorTab={isComingSoon} />
+      <Header activeTab={activeTab} setActiveTab={setActiveTab} selection={selection} sgpa={sgpa} onSwitch={() => setSwitchOpen(true)} />
 
       {activeTab === 'courses' && (
         <Hero selection={selection} sgpa={sgpa} courses={courses} savedMajor={savedMajor} />
@@ -482,13 +476,8 @@ export default function App() {
             RV University · SGPA Calculator
           </p>
           <h1 style={{ fontFamily:"'Hanken Grotesk',sans-serif", fontWeight:300, fontSize:'clamp(32px,5vw,56px)', letterSpacing:'-1.5px', color:'#F5EFEB', margin:0 }}>
-            {activeTab === 'dashboard' ? 'Dashboard.' : activeTab === 'reverse' ? 'Reverse Calc.' : activeTab === 'major' ? 'Your Major.' : 'Settings.'}
+            {activeTab === 'dashboard' ? 'Dashboard.' : activeTab === 'reverse' ? 'Reverse Calc.' : 'Settings.'}
           </h1>
-          {activeTab === 'major' && (
-            <p style={{ fontFamily:"'DM Mono',monospace", fontSize:10, color:'#8B8986', marginTop:10 }}>
-              Applied from Year 2 onwards · saved to your profile
-            </p>
-          )}
         </div>
       )}
 
@@ -509,11 +498,6 @@ export default function App() {
             )}
             {activeTab === 'reverse' && (
               <ReverseCalculator courses={courses} sgpa={sgpa} />
-            )}
-            {activeTab === 'major' && (
-              <div style={{ display:'flex', flexDirection:'column', alignItems:'center', paddingTop:8 }}>
-                <NeuralOrbit savedMajor={savedMajor} onSelect={handleMajorTabSelect} />
-              </div>
             )}
             {activeTab === 'settings' && (
               <Settings courses={courses} sgpa={sgpa} onReset={resetAll} onImport={importCourses} onSwitchDivide={() => setSwitchOpen(true)} selection={selection} />
