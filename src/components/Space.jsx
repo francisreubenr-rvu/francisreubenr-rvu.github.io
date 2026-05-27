@@ -467,7 +467,7 @@ function SolarCanvas({ canvasRef, onPlanetClick, zoomedId, galaxyIdx, onSatellit
       const dt=Math.min(now-lastRef.current,60)/1000; lastRef.current=now
       const t=(now-t0.current)/1000
       ctx.clearRect(0,0,W,H)
-      const BSx=(W*0.44)/512, BSy=(H*0.44)/512, BS=Math.sqrt(BSx*BSy)
+      const BSx=(W*(W<600?0.68:0.44))/512, BSy=(H*(W<600?0.68:0.44))/512, BS=Math.sqrt(BSx*BSy)
       const CX=W/2, CY=H/2
 
       const targetZf=zIdRef.current?4:1
