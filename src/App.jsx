@@ -494,7 +494,7 @@ export default function App() {
               <CourseManager courses={courses} onUpdate={updateCourse} onAdd={addCourse} onDelete={deleteCourse} completed={isCompleted} comingSoon={isComingSoon} />
             )}
             {activeTab === 'dashboard' && (
-              <Dashboard courses={courses} sgpa={sgpa} totalCredits={totalCredits} totalCGP={totalCGP} comingSoon={isComingSoon} />
+              <Dashboard courses={courses} sgpa={sgpa} totalCredits={totalCredits} totalCGP={totalCGP} comingSoon={isComingSoon} onUpdateCourse={updateCourse} />
             )}
             {activeTab === 'reverse' && (
               <ReverseCalculator courses={courses} sgpa={sgpa} />

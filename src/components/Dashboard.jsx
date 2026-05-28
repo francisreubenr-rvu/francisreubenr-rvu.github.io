@@ -1,8 +1,14 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
+import { AlertTriangle, CheckCircle, FileText, Loader, Upload } from 'lucide-react'
 import SGPASummaryCard from './SGPASummaryCard'
 import GradeChart from './GradeChart'
+import PDFImportModal from './PDFImportModal'
+import { useToast } from './Toast'
+import { assertFileMetadata, assertMagicBytes, parsePDFMarks } from '../utils/pdfParser'
 import { GRADING_SCALE } from '../utils/constants'
+
+// ── Comet canvas background ───────────────────────────────────────────────────
 
 function DashCometCanvas() {
   const ref = useRef(null)
@@ -65,6 +71,8 @@ function DashCometCanvas() {
   return <canvas ref={ref} style={{ position:'absolute', inset:0, width:'100%', height:'100%', pointerEvents:'none', opacity:0.55 }} />
 }
 
+// ── Stat card ─────────────────────────────────────────────────────────────────
+
 function StatCard({ label, value, accent, delay }) {
   return (
     <motion.div
@@ -78,7 +86,154 @@ function StatCard({ label, value, accent, delay }) {
   )
 }
 
-export default function Dashboard({ courses, sgpa, totalCredits, totalCGP, comingSoon = false }) {
+// ── PDF upload card ───────────────────────────────────────────────────────────
+// Security: validate → magic bytes → PDF.js (no JS eval, no font-face) → preview
+
+function PDFUploadCard({ courses, onUpdateCourse }) {
+  const toast     = useToast()
+  const fileRef   = useRef(null)
+
+  // 'idle' | 'parsing' | 'ready' | 'error'
+  const [status,      setStatus]      = useState('idle')
+  const [errorMsg,    setErrorMsg]    = useState('')
+  const [parsedMarks, setParsedMarks] = useState([])
+  const [showModal,   setShowModal]   = useState(false)
+
+  const handleTrigger = () => {
+    if (status === 'parsing') return
+    // Reset before opening picker so a re-upload of the same file still fires onChange
+    setStatus('idle')
+    setErrorMsg('')
+    fileRef.current?.click()
+  }
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files?.[0]
+    // Clear immediately so the same file can be re-selected later
+    e.target.value = ''
+    if (!file) return
+
+    setStatus('parsing')
+    setErrorMsg('')
+
+    try {
+      // Layer 1 — sync metadata check (fast rejection for wrong extensions / MIME)
+      assertFileMetadata(file)
+      // Layer 2 — async magic-bytes check (rejects renamed files)
+      await assertMagicBytes(file)
+      // Layers 3 & 4 — PDF.js parse with security options + output sanitisation
+      const marks = await parsePDFMarks(file)
+
+      if (marks.length === 0) {
+        setStatus('error')
+        setErrorMsg('No course codes found in this PDF. Make sure it is an RVU marks statement.')
+        return
+      }
+
+      setParsedMarks(marks)
+      setStatus('ready')
+      setShowModal(true)
+    } catch (err) {
+      setStatus('error')
+      // Sanitise: never show raw internal error messages to the user
+      const safe = String(err?.message ?? 'Unknown error').slice(0, 180)
+      setErrorMsg(safe)
+      toast(safe, 'error')
+    }
+  }
+
+  const handleApply = (updates) => {
+    if (!updates?.length) return
+    updates.forEach(({ id, patch }) => onUpdateCourse(id, patch))
+    toast(`Marks applied for ${updates.length} course${updates.length !== 1 ? 's' : ''}`, 'success')
+    setStatus('idle')
+  }
+
+  const handleModalClose = () => {
+    setShowModal(false)
+    if (status === 'ready') setStatus('idle')
+  }
+
+  return (
+    <>
+      <motion.div
+        initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: .4 }}
+        className="ts-card p-5"
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div style={{
+            width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            border: '1px solid rgba(255,255,255,0.15)', flexShrink: 0,
+          }}>
+            <FileText size={14} style={{ color: '#8B8986' }} />
+          </div>
+          <div>
+            <p className="text-sm font-body" style={{ color: '#F5EFEB', letterSpacing: '.15px' }}>
+              Import Marks from PDF
+            </p>
+            <p className="text-xs font-body mt-0.5" style={{ color: '#8B8986', letterSpacing: '.2px' }}>
+              Upload your RVU marks statement — CIE and SEE marks are extracted automatically
+            </p>
+            {status === 'error' && (
+              <p className="text-xs font-mono mt-1" style={{ color: '#EF4444', display: 'flex', alignItems: 'center', gap: 5 }}>
+                <AlertTriangle size={10} /> {errorMsg}
+              </p>
+            )}
+            {status === 'ready' && (
+              <p className="text-xs font-mono mt-1" style={{ color: '#10B981', display: 'flex', alignItems: 'center', gap: 5 }}>
+                <CheckCircle size={10} /> Marks extracted — review and apply
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Hidden file input — PDF only, single file, no multiple attribute */}
+        <input
+          ref={fileRef}
+          type="file"
+          accept=".pdf"
+          className="hidden"
+          onChange={handleFileChange}
+        />
+
+        <motion.button
+          whileHover={status !== 'parsing' ? { scale: 1.02 } : {}}
+          whileTap={status !== 'parsing' ? { scale: .98 } : {}}
+          onClick={handleTrigger}
+          disabled={status === 'parsing'}
+          className="btn-pill btn-out"
+          style={{
+            display: 'flex', alignItems: 'center', gap: 8,
+            opacity: status === 'parsing' ? 0.6 : 1,
+            cursor: status === 'parsing' ? 'not-allowed' : 'pointer',
+            flexShrink: 0,
+          }}
+        >
+          {status === 'parsing'
+            ? <><motion.span animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }} style={{ display:'inline-flex' }}><Loader size={13} /></motion.span> Parsing…</>
+            : status === 'ready'
+              ? <><CheckCircle size={13} style={{ color: '#10B981' }} /> Review</>
+              : <><Upload size={13} /> Upload PDF</>
+          }
+        </motion.button>
+      </motion.div>
+
+      <PDFImportModal
+        open={showModal}
+        onClose={handleModalClose}
+        parsedMarks={parsedMarks}
+        currentCourses={courses}
+        onApply={handleApply}
+      />
+    </>
+  )
+}
+
+// ── Dashboard ─────────────────────────────────────────────────────────────────
+
+export default function Dashboard({ courses, sgpa, totalCredits, totalCGP, comingSoon = false, onUpdateCourse }) {
   const scored    = courses.filter(c => c.grade !== null)
   const oCount    = courses.filter(c => c.grade === 'O').length
   const failCount = courses.filter(c => c.grade === 'F').length
@@ -107,6 +262,11 @@ export default function Dashboard({ courses, sgpa, totalCredits, totalCGP, comin
     )}
     <div className="space-y-6" style={{ position:'relative', zIndex:1 }}>
       <SGPASummaryCard sgpa={sgpa} totalCredits={totalCredits} totalCGP={totalCGP} coursesCount={courses.length} />
+
+      {/* PDF import — only shown when the dashboard is live and a callback is wired */}
+      {onUpdateCourse && !comingSoon && (
+        <PDFUploadCard courses={courses} onUpdateCourse={onUpdateCourse} />
+      )}
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <StatCard label="O Grades" value={oCount}   accent="#10B981" delay={.1} />
